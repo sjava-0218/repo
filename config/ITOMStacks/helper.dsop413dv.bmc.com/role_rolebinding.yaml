@@ -1,0 +1,108 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: helix-sa-role
+  namespace: matrix
+rules:
+- apiGroups:
+  - networking.k8s.io
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - update
+  - patch
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - update
+  - patch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - patch
+  - update
+  # the following three privileges are necessary only when using endpoints
+  - create
+  - list
+  - watch
+  # delete and deletecollection are required only for for 'patronictl remove'
+  - delete
+  - deletecollection
+# required by patroni
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# required for deploy-guardian tool  
+- apiGroups:
+  - ""
+  - metrics.k8s.io
+  resources:
+  - events
+  - pods
+  verbs:
+  - get
+  - list    
+# required by TAS,aif-core-service,aif-job-manager-service chart
+- apiGroups:
+  - apps
+  resourceNames:
+  - tas
+  - aif-job-manager-service
+  - aif-core-service  
+  - redis-redis-ha-haproxy
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: helix-sa-rolebinding
+  namespace: matrix
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: helix-sa-role
+subjects:
+- kind: ServiceAccount
+  name: helix-sa
+  namespace: matrix
